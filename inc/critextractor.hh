@@ -20,7 +20,7 @@ public:
   /***/
   ~CritExtractor(void);
 
-  /**Get a list with critical structures in (polar-) coordinates for a unit
+  /**Get a list with critical structures in (relative) coordinates for a unit
    * cube.*/
   static CritElements getCritElements(const VectorCuboid& cube);
 
