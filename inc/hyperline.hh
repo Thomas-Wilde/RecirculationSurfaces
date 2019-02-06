@@ -20,7 +20,7 @@
 
 namespace RS {
 class HyperLine {
-  //-----------------------------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
 public:
   struct RecursiveSearchParams {
     RecursiveSearchParams(const real&  t0_a,
@@ -54,7 +54,7 @@ public:
     }
   };
 
-  //-----------------------------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
 public:
   HyperLine(const Vec3r&   pointA,
             const Vec3r&   pointB,
@@ -93,14 +93,14 @@ private:
                      const real&                       tau_a,
                      const real&                       tau_b) const;
 
-  //-----------------------------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
   // subsampling search
   typedef std::pair<RecursiveSearchParams,
                     std::vector<std::shared_ptr<FlowMap3D>>>
     SearchPair;
   /**\param p_stopProcess - Flag, which is 1, when the process takes to long and
-     should be killed, and 0 else. This is not a bool, due to inability of
-     created a vector<bool>.*/
+     should be killed, and 0 else. This is not a bool, due to inability to
+     a vector<bool>.*/
   std::list<RecPoint> searchRecPointSampling(
     const RecursiveSearchParams&      params,
     const std::shared_ptr<FlowMap3D>* p_flowMaps,
@@ -133,12 +133,10 @@ private:
     std::vector<RecursiveSearchParams>* p_subParams,
     std::vector<std::vector<int>>*      p_mapIndexes) const;
 
-  //-----------------------------------------------------------------------------------------------//
-  // members
+  //--------------------------------------------------------------------------//
   Vec3r m_pointA;
   Vec3r m_pointB;
-  bool  m_refine =
-    false; // flag indicating that the search process is used for refinment
+  bool  m_refine = false; // true, when search process is used for refinment
 
   HyperPoint     m_hyperPointA;
   HyperPoint     m_hyperPointB;

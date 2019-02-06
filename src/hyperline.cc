@@ -2,7 +2,7 @@
 
 using namespace std;
 namespace RS {
-//-----------------------------------------------------------------------------------------------//
+//--------------------------------------------------------------------------//
 const HyperPoint&
 HyperLine::getHyperPointA(void) const {
   return m_hyperPointA;
@@ -20,7 +20,7 @@ HyperLine::getFlowSampler(void) const {
   return mp_flowSampler;
 }
 
-//-----------------------------------------------------------------------------------------------//
+//--------------------------------------------------------------------------//
 HyperLine::HyperLine(const Vec3r&   pointA,
                      const Vec3r&   pointB,
                      FlowSampler3D* p_flowSampler)
@@ -30,7 +30,7 @@ HyperLine::HyperLine(const Vec3r&   pointA,
 , m_hyperPointB(m_pointB, p_flowSampler)
 , mp_flowSampler(p_flowSampler) {}
 
-//-----------------------------------------------------------------------------------------------//
+//--------------------------------------------------------------------------//
 HyperLine::HyperLine(const Vec3r& point, const HyperPoint& hyperPoint)
 : m_pointA(point)
 , m_pointB(hyperPoint.getPos())
@@ -38,7 +38,7 @@ HyperLine::HyperLine(const Vec3r& point, const HyperPoint& hyperPoint)
 , m_hyperPointB(hyperPoint)
 , mp_flowSampler(hyperPoint.getFlowSampler()) {}
 
-//-----------------------------------------------------------------------------------------------//
+//--------------------------------------------------------------------------//
 HyperLine::HyperLine(const HyperPoint& hyperPoint, const Vec3r& point)
 : m_pointA(hyperPoint.getPos())
 , m_pointB(point)
@@ -46,7 +46,7 @@ HyperLine::HyperLine(const HyperPoint& hyperPoint, const Vec3r& point)
 , m_hyperPointB(m_pointB, hyperPoint.getFlowSampler())
 , mp_flowSampler(hyperPoint.getFlowSampler()) {}
 
-//-----------------------------------------------------------------------------------------------//
+//--------------------------------------------------------------------------//
 HyperLine::HyperLine(const HyperPoint& hyperPointA,
                      const HyperPoint& hyperPointB)
 : m_pointA(hyperPointA.getPos())
@@ -55,7 +55,7 @@ HyperLine::HyperLine(const HyperPoint& hyperPointA,
 , m_hyperPointB(hyperPointB)
 , mp_flowSampler(hyperPointA.getFlowSampler()) {}
 
-//-----------------------------------------------------------------------------------------------//
+//--------------------------------------------------------------------------//
 HyperLine&
 HyperLine::operator=(const HyperLine& line) {
   this->mp_flowSampler = line.mp_flowSampler;
@@ -66,10 +66,10 @@ HyperLine::operator=(const HyperLine& line) {
   return *this;
 }
 
-//-----------------------------------------------------------------------------------------------//
+//--------------------------------------------------------------------------//
 HyperLine::~HyperLine(void) {}
 
-//-----------------------------------------------------------------------------------------------//
+//--------------------------------------------------------------------------//
 std::vector<RecPoint>
 HyperLine::getRecirculationPoints(const real&            t0_min,
                                   const real&            t0_max,
@@ -82,13 +82,14 @@ HyperLine::getRecirculationPoints(const real&            t0_min,
                                   int*                   p_stopProcess) {
   m_refine = refine;
 
-  // output contains for the recirculation points
+  // output container for the recirculation points
   std::list<RecPoint> recPoints;
 
   // some infos and containers needed for the computation
-  real                  t0_a = t0_min;
-  real                  t0_b = std::min(t0_min + dt, t0_max);
-  Vec3r                 diffVec[8];
+  real  t0_a = t0_min;
+  real  t0_b = std::min(t0_min + dt, t0_max);
+  Vec3r diffVec[8];
+
   shared_ptr<FlowMap3D> flowMaps[4];
 
   // prepare an array with the needed flowmaps for the first loop
@@ -138,10 +139,15 @@ HyperLine::getRecirculationPoints(const real&            t0_min,
       if (checkCube.passesSignTest()) {
         // start the recursive search to find the RecPoints
         auto tempRecPoints = std::list<RecPoint>();
-        // tempRecPoints = searchRecPointSampling(param, &flowMaps[0],
-        // Globals::SPACEEQUAL, 0, p_stopProcess);
+        /**We have two possibilties recursive or iterative search.**/
+        /* 1. recursive search
+         * tempRecPoints = searchRecPointSampling(param, &flowMaps[0],
+         * Globals::SPACEEQUAL, 0, p_stopProcess);
+         */
+        /* 2. iterative search */
         tempRecPoints = searchRecPointSamplingIter(
           param, flowMaps, Globals::SPACEEQUAL, p_stopProcess);
+        /***/
 
         // insert the found RecPoints for the current t0/tau combination
         if (0 < tempRecPoints.size()) {
@@ -150,9 +156,9 @@ HyperLine::getRecirculationPoints(const real&            t0_min,
               .insert(p_candidates->end(),
                       tempRecPoints.begin(),
                       tempRecPoints.end());
-          // assumption: a line hits only one point -> for a (t0,
-          // tau)-combination, we pick the point, with the best recirculation
-          // properties
+          // assumption: a line hits only one point
+          // -> for a (t0, tau)-combination, we pick the point,
+          // with the best recirculation properties
           RecPoint& bestPnt = tempRecPoints.front();
           for (auto& tempPnt : tempRecPoints)
             if (tempPnt.dist < bestPnt.dist)
@@ -181,14 +187,16 @@ HyperLine::getRecirculationPoints(const real&            t0_min,
   return recPointsVec;
 }
 
-//-----------------------------------------------------------------------------------------------//
+//--------------------------------------------------------------------------//
 /**Does a recursive subdivision of the search space, that is defined by \c param
   to find critical points / recirculation points. When this method is called and
   the search parameters define a search space, that is smaller, than the wanted
   precision, the center of this search area is returned as a recirculation
-  point. \param level - the current recursion depth \param reqDist - \li if <
-  0.0, all RecPoints are searched \li if > 0.0 the search is stopped as soon as
-  a RecPoint with dist < reqDist is found */
+  point.
+  \param level - the current recursion depth
+  \param reqDist - \li if < 0.0, all RecPoints are searched
+                 - \li if > 0.0 the search is stopped as soon as a RecPoint with
+                       dist < reqDist is found */
 std::list<RecPoint>
 HyperLine::searchRecPointSampling(const RecursiveSearchParams&      params,
                                   const std::shared_ptr<FlowMap3D>* p_flowMaps,
@@ -221,8 +229,9 @@ HyperLine::searchRecPointSampling(const RecursiveSearchParams&      params,
 
   // do a further resampling of the searchspace
   std::shared_ptr<FlowMap3D> flowMaps[9];
-  auto                       subPara = std::vector<RecursiveSearchParams>();
-  auto                       mapIndi = std::vector<std::vector<int>>();
+
+  auto subPara = std::vector<RecursiveSearchParams>();
+  auto mapIndi = std::vector<std::vector<int>>();
   refineSearchSpace(
     params, !space, !time, p_flowMaps, &flowMaps[0], &subPara, &mapIndi);
 
@@ -259,7 +268,9 @@ HyperLine::searchRecPointSampling(const RecursiveSearchParams&      params,
   return recPoints;
 }
 
-//-----------------------------------------------------------------------------------------------//
+//--------------------------------------------------------------------------//
+/**This is the iterative version of the search method. The areas in which the
+   (prefered) search takes place are managed by lists.  */
 std::list<RecPoint>
 HyperLine::searchRecPointSamplingIter(
   const RecursiveSearchParams&      params,
@@ -281,8 +292,9 @@ HyperLine::searchRecPointSamplingIter(
   unsigned int stepCount = 0;
   // unsigned int maxSteps = static_cast<int>(pow(8, 8));
   // unsigned int maxSteps = static_cast<int>(pow(8, 4));
-  unsigned int                  maxSteps = 512;
-  bool                          goOn     = true;
+  unsigned int maxSteps = 512;
+  bool         goOn     = true;
+
   vector<shared_ptr<FlowMap3D>> flowMaps;
 
   // remind the old front element, to check if the trilinear search found a
@@ -322,7 +334,7 @@ HyperLine::searchRecPointSamplingIter(
     subFlowMaps.resize(9);
     resampleCuboid(entry, subFlowMaps, &searchList);
 
-    // check if the front element has changed, if so a preferred octant was
+    // check if the front element has changed, if so a prefered octant was
     // found if not we searched an area, where it is likely that there is no
     // point
     if (!searchList.empty() && oldFront == searchList.front().first) {
@@ -346,7 +358,7 @@ HyperLine::searchRecPointSamplingIter(
   return recPoints;
 }
 
-//-----------------------------------------------------------------------------------------------//
+//--------------------------------------------------------------------------//
 void
 HyperLine::resampleCuboid(const SearchPair&              searchSpace,
                           vector<shared_ptr<FlowMap3D>>& subFlowMaps,
@@ -402,7 +414,7 @@ HyperLine::resampleCuboid(const SearchPair&              searchSpace,
   }
 }
 
-//-----------------------------------------------------------------------------------------------//
+//--------------------------------------------------------------------------//
 /**Generate the parameters for recursive subdivision.
 \param [in] params - search parameters (t0, tau, position) for the current area
 that get divided \param [in] refineSpace - is true, if the space component
@@ -524,13 +536,14 @@ HyperLine::refineSearchSpace(const RecursiveSearchParams&        params,
   }
 }
 
-//-----------------------------------------------------------------------------------------------//
+//--------------------------------------------------------------------------//
 /***Gets a octant which should be searched for RecPoints. The check is done by a
 trilinear search. If this search reveals, there is a point, this octant will be
-preferred for the search. If there is no point in there, this octant will not be
-preferred. If there is an extended critical structure, this octant will be
-skipped. \return A list, which contains the octants, that will be searched and a
-flag indicating if it should be preferred (true) or not (false).*/
+prefered for the search. If there is no point in there, this octant will not be
+prefered. If there is an extended critical structure, this octant will be
+skipped.
+\return A list, which contains the octants, that will be searched and a
+        flag indicating if it should be prefered (true) or not (false).*/
 std::list<std::pair<int, bool>>
 HyperLine::computePreferedOctants(
   std::shared_ptr<FlowMap3D>*         p_subFlowMaps,
@@ -572,7 +585,7 @@ HyperLine::computePreferedOctants(
       continue;
     }
 
-    // critical points leads to preferred computation
+    // critical points leads to prefered computation
     if (crEl.containsCritPoints()) {
       octants.push_front(make_pair(i, true));
       continue;
@@ -586,7 +599,7 @@ HyperLine::computePreferedOctants(
   return octants;
 }
 
-//-----------------------------------------------------------------------------------------------//
+//--------------------------------------------------------------------------//
 bool
 HyperLine::reachedSamplingAccuracy(const RecursiveSearchParams& params,
                                    bool*                        p_time,
@@ -609,7 +622,7 @@ HyperLine::reachedSamplingAccuracy(const RecursiveSearchParams& params,
   return (time && space);
 }
 
-//-----------------------------------------------------------------------------------------------//
+//--------------------------------------------------------------------------//
 /**
 Condition 1: out of domain
 Condition 2: A particle, must reach different positions for different t0/tau
@@ -680,7 +693,7 @@ HyperLine::getDiffVector(Vec3r*                            diffVec,
   return true;
 }
 
-//-----------------------------------------------------------------------------------------------//
+//--------------------------------------------------------------------------//
 /**Compute all information that are needed for the RecPoint, based on pos, t0
  * and tau. */
 RecPoint
