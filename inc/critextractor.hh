@@ -69,11 +69,10 @@ private:
 };
 
 //-----------------------------------------------------------------------------------------------//
-/**Parameters to control the search for critical points structures.
-\li searchPrecision - controls the depth of the recusive search
-\li jacobiPrecision - controls the depth from when the Jacobian-Test is
-performed \li clusterPrecision - distance between two points, to treat them as
-tow different points
+/**Parameters to control the search for critical structures.
+\li searchPrecision - controls the depth of the recursive search
+\li jacobiPrecision - controls the depth from which the Jacobian-Test is performed 
+\li clusterPrecision - distance between two points, to treat them as two different points
 */
 struct CritSearchParams {
   real         searchPrecision  = 1.0 / pow(2, 40);
