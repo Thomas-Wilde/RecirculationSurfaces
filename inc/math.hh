@@ -1,21 +1,21 @@
 #ifndef MATH_HH
 #define MATH_HH
 
-//-----------------------------------------------------------------------------
-#include "Eigen/Dense"
+//--------------------------------------------------------------------------//
+#include "eigen3/Eigen/Dense"
 #include "vclibs/math/VecN.hh"
 //#include "vclibs/math/blas_matrix.hh"
 #include "vclibs/math/rk43.hh"
 //#include "vclibs/math/roots.hh"
 
-//-----------------------------------------------------------------------------
+//--------------------------------------------------------------------------//
 
 // TODO: consider moving this to vclibs!
 
-//-----------------------------------------------------------------------------
+//--------------------------------------------------------------------------//
 namespace VC {
 namespace math {
-//-----------------------------------------------------------------------------
+//--------------------------------------------------------------------------//
 
 namespace ode {
 
@@ -25,19 +25,19 @@ sgn(T val) {
   return (T(0) < val) - (val < T(0));
 }
 
-//-----------------------------------------------------------------------------
+//--------------------------------------------------------------------------//
 
 /** Integrate unsteady flow.
 
-    Wrap, e.g., RK43::integrate(), such that integration continues
-    for CriticalPoint state.
+Wrap, e.g., RK43::integrate(), such that integration continues
+for CriticalPoint state.
 
-    Note: the correct way to deal with this case is integration in
-    space-time in a sense that the time t is a component of the vector
-    y! (For, e.g., sampled flows, this means often t=const.)
+Note: the correct way to deal with this case is integration in
+space-time in a sense that the time t is a component of the vector
+y! (For, e.g., sampled flows, this means often t=const.)
 
-    \tparam ODE integrator, e.g., RK43
- */
+\tparam ODE integrator, e.g., RK43
+*/
 template<typename ODE>
 EvalState
 integrate_unsteady(ODE&                       _ode,
@@ -117,9 +117,9 @@ integrate_unsteady(ODE&                       _ode,
   return state;
 }
 
-//-----------------------------------------------------------------------------
+//--------------------------------------------------------------------------//
 } // namespace ode
-//-----------------------------------------------------------------------------
+//--------------------------------------------------------------------------//
 } // namespace math
 } // namespace VC
 

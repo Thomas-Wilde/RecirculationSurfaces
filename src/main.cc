@@ -1,7 +1,4 @@
-#include <iostream>
-#include <memory>
-#include <stdio.h>
-
+#include "amiradataset.hh"
 #include "doublegyre3D.hh"
 #include "flow.hh"
 #include "globals.hh"
@@ -9,8 +6,15 @@
 #include "jobworker.hh"
 #include "types.hh"
 
+#include <filesystem>
+#include <iostream>
+#include <memory>
+#include <set>
+#include <stdio.h>
+
 using namespace std;
 using namespace RS;
+namespace fs = std::filesystem;
 
 //--------------------------------------------------------------------------//
 void
@@ -23,12 +27,16 @@ sampleRecirculationPointToPathline(const RecPoint& rcp,
   cout << "Recirculation Point at: " << rcp.toString() << "\n";
 
   RS::real dt = rcp.tau / static_cast<float>(samples - 1);
-  for (int i = 0; i < 20; i++)
+  for (int i = 0; i < samples; i++)
     cout << "pos: " << pathline.eval_position_at(rcp.t0 + dt * i)
          << " tau=" << dt * i << "\n";
+
+  auto p0   = pathline.eval_position_at(rcp.t0);
+  auto ptau = pathline.eval_position_at(rcp.t0 + dt * (samples - 1));
+  cout << "\n\ndistance (𝕡0, 𝕡τ): " << (p0 - ptau).norm2() << endl;
 }
 
-//-----------------------------------------------------------------------------------------------//
+//--------------------------------------------------------------------------//
 void
 computeDoubleGyre3DSingleLine(void) {
   /*********************************************/
@@ -85,11 +93,59 @@ computeDoubleGyre3D(void) {
 }
 
 //--------------------------------------------------------------------------//
+void
+computeSquaredCylinderSingleLine(void) {
+  // ---------------------------------------------------------------------- //
+  // --- load the data set
+  string      path = "../../data/SquareCylinderHighResTime";
+  set<string> file_set; // we need this container for sorting
+  for (const auto& entry : fs::directory_iterator(path))
+    if (entry.is_regular_file())
+      file_set.insert(entry.path());
+  // ---
+  std::vector<std::string> file_vec; // the amira flow needs a vector
+  for (const auto& entry : file_set) {
+    file_vec.push_back(entry);
+    if (60 == file_vec.size()) // control how many files get loaded
+      break;                   // for the example we load data up to t=7.0
+  }
 
+  // ---------------------------------------------------------------------- //
+  // --- create a flow based on the amira files
+  // Vec2r time_range(0.08, 40.56);  // you get this info from the filenames
+  Vec2r time_range(0.0, 0.08 * file_vec.size());
+  Vec3r base_pnt(0.5, -0.5, 0.0); // this is a point directly behind the
+                                  // cylinder  we only have to search
+                                  // behind this point
+  shared_ptr<Flow3D> flow = make_shared<AmiraDataSet>(file_vec, time_range);
+  FlowSampler3D      sampler(*flow);
+  cout << "time range: [" << time_range << "]" << endl;
+
+  // ----------------------------------------------------------------------
+  //
+  //--- We know a recirculation point with these coordinates
+  // (x,y,z,t,τ) = (1.42 0.46 2.01549 1.22299 3.84389)
+  Vec3r pA(1.42, 0.46, 2.00);
+  Vec3r pB(1.42, 0.46, 2.02);
+
+  //--- check if the hyperline is inside the domain, if not go on
+  if (!flow->isInside(pA) || !flow->isInside(pB))
+    return;
+
+  // search the HyperLine for Recirculation Points
+  HyperLine        hl(pA, pB, &sampler);
+  vector<RecPoint> recPoints;
+  recPoints = hl.getRecirculationPoints(0.0, 5.0, 0.0, 5.0, 0.2, 0.0005);
+  for (auto rcp : recPoints)
+    sampleRecirculationPointToPathline(rcp, 20, sampler);
+}
+
+//--------------------------------------------------------------------------//
 int
 main(int /*argc*/, char** /*argv[]*/) {
   cout << setprecision(8) << fixed << showpos << "\n";
   // computeDoubleGyre3D();
-  computeDoubleGyre3DSingleLine();
+  // computeDoubleGyre3DSingleLine();
+  computeSquaredCylinderSingleLine();
   return 0;
 }
