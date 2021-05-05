@@ -1,0 +1,25 @@
+﻿---
+BasedOnStyle: Mozilla
+TabWidth: '2'
+UseTab: Never
+BraceWrapping:
+  AfterClass:      false
+  AfterControlStatement: false
+  AfterEnum:       false
+  AfterFunction:   false
+  AfterNamespace:  false
+  AfterObjCDeclaration: false
+  AfterStruct:     false
+  AfterUnion:      false
+  BeforeCatch:     false
+  BeforeElse:      false
+  IndentBraces:    false
+BreakBeforeBraces: Custom
+
+AlignConsecutiveAssignments: true
+AlignConsecutiveDeclarations: true
+
+ReflowComments:    true
+#AlignTrailingComments: true
+#SpacesBeforeTrailingComments: 3
+...
